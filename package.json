@@ -1,0 +1,44 @@
+{
+  "name": "audio-sync",
+  "description": "Synchronizes audio playback between devices.",
+  "main": "main.js",
+  "author": "Alberto Miranda",
+  "repository": "codealchemist/audio-sync",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start-web": "REACT_APP_IP=`node ip.js` react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "start": "nf start",
+    "start-electron": "ELECTRON_START_URL=http://localhost:3000 electron .",
+    "start-build": "electron .",
+    "build-electron": "electron-packager ."
+  },
+  "dependencies": {
+    "drag-drop": "^2.13.2",
+    "ip": "^1.1.5",
+    "material-ui": "^0.18.0",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
+    "react-material-icons": "^1.0.1",
+    "react-tap-event-plugin": "^2.0.1",
+    "time-diff-client": "^2.0.1",
+    "time-diff-server": "^2.0.0",
+    "websocket-broadcast": "^1.1.4",
+    "youtube-audio-server": "^2.0.0"
+  },
+  "devDependencies": {
+    "electron": "^1.6.8",
+    "electron-packager": "^8.7.0",
+    "foreman": "^2.0.0",
+    "react-scripts": "0.9.5"
+  },
+  "homepage": "./",
+  "eslint": {
+    "globals": {
+      "Howl": true
+    }
+  }
+}
