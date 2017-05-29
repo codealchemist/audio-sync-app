@@ -44,17 +44,22 @@ class App extends Component {
       volume: 0.5,
       preloadTime: 5000,
       timeDiff: this.store.get('timeDiff') || '',
-      offset: this.store.get('offset') || 0
+      offset: this.store.get('offset') || 0,
+      songs: this.store.get('songs') || songs
     }
-    this.songs = songs
-    this.selectedSong = this.songs[0]
-    this.setAudioFile(this.songs[0].file)
+    this.selectedSong = this.state.songs[0]
+    this.selectedSongIndex = null
+    this.setAudioFile(this.state.songs[0].file)
     this.hasControls = false
     this.playDelay = 5000 // in ms
     this.backwardsOffset = 1 // in ms
     this.forwardOffset = 100 // in ms
     this.isMaster = false
     this.isServer = location.href.match('localhost')
+
+    window.goto = (value) => {
+      this.goto(value)
+    }
   }
 
   onKey (event) {
@@ -422,11 +427,12 @@ class App extends Component {
     this.doReload()
   }
 
-  selectSong (song) {
-    console.log('-- SELECTED SONG:', song)
+  selectSong (song, index) {
+    console.log(`SELECTED SONG ${index}: `, song)
     control.selectSong({value: {song, volume: this.getVolume()}})
     this.setAudioFile(song.file)
     this.selectedSong = song
+    this.selectedSongIndex = index
     this.setStatus('selectedSong', this.getSongStatus(this.selectedSong))
   }
 
@@ -435,6 +441,40 @@ class App extends Component {
     this.setVolume(volume)
     this.selectedSong = song
     this.setStatus('selectedSong', this.getSongStatus(this.selectedSong)) 
+  }
+
+  goto (seconds) {
+    this.sound.seek(seconds)
+  }
+
+  playFirst () {
+    this.selectSong(this.state.songs[0], 0)
+    this.play()
+    return
+  }
+
+  next () {
+    const totalSongs = this.state.songs.length || 0
+
+    // Only one song.
+    if (totalSongs === 0) {
+      console.log('NEXT: only one, play first')
+      this.playFirst()
+      return
+    }
+
+    // End of list.
+    if (this.selectedSongIndex >= totalSongs + 1) {
+      console.log('NEXT: last song, play first')
+      this.playFirst()
+      return
+    }
+
+    const index = this.selectedSongIndex + 1
+    const song = this.state.songs[index]
+    console.log(`NEXT: index ${index} / total: ${totalSongs}`, song)
+    this.selectSong(song, index)
+    this.play() 
   }
 
   setAudioFile (file) {
@@ -449,6 +489,11 @@ class App extends Component {
       format: 'mp3',
       autoSuspend: false,
       html5: true
+    })
+
+    this.sound.on('end', () => {
+      console.log('Audio finished playing.')
+      this.next()
     })
   }
 
@@ -469,12 +514,12 @@ class App extends Component {
   }
 
   getSongsList () {
-    const songs = this.songs.map((song) => {
+    const songs = this.state.songs.map((song, index) => {
       return (
         <ListItem
           primaryText={`${song.title} by ${song.author}`}
           leftIcon={<MusicNoteIcon />}
-          onClick={() => this.selectSong(song)}
+          onClick={() => this.selectSong(song, index)}
         />
       )
     })
@@ -495,7 +540,9 @@ class App extends Component {
       title: 'YouTube Song',
       file: `//${this.state.youtubeAudioServer}/${videoId}`
     }
-    this.selectSong(song)
+    const songs = this.state.songs
+    songs.push(song)
+    this.setState({songs})
   }
 
   onSettingsChange (change) {
@@ -577,7 +624,7 @@ class App extends Component {
               <div className="youtube-container">
                 <TextField
                   style={{width: '100%'}}
-                  floatingLabelText="YouTube Video ID"
+                  floatingLabelText="YouTube Video ID / Add to queue"
                   value={this.state.youtubeId}
                   onChange={(event, value) => this.loadFromYoutube(value)}
                 />
