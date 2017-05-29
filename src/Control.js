@@ -91,6 +91,12 @@ class Control {
       log('socket open')
     }
 
+    this.ws.onclose = () => {
+      log('socket closed')
+      const ts = (new Date()).getTime()
+      this.disconnect({'time': ts})
+    }
+
     this.ws.onmessage = (event) => {
       log('got message', event)
       const {type, data} = JSON.parse(event.data)

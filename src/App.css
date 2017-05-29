@@ -28,6 +28,11 @@
 
 .App-intro {
   font-size: large;
+  position: relative;
+  background: white;
+  margin: 0;
+  padding: 10px 0;
+  opacity: 0.5;
 }
 
 @keyframes App-logo-spin {
@@ -36,10 +41,16 @@
 }
 
 .App-content {
+  
+}
+
+.controls {
   text-align: center;
   margin: auto;
-  padding: 40px;
+  padding: 10px 40px;
   max-width: 800px;
+  position: relative;
+  background: white;
 }
 
 .hidden {

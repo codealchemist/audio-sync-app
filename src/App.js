@@ -22,6 +22,7 @@ import SyncIcon from 'react-material-icons/icons/notification/sync'
 import songs from './songs'
 import quotes from './quotes'
 import logo from './logo.svg'
+import Background from './Background'
 import './App.css'
 
 class App extends Component {
@@ -178,7 +179,6 @@ class App extends Component {
   }
 
   componentWillUnmount() {
-    control.disconnect()
     document.querySelector('body')
       .removeEventListener('keydown', (event) => this.onKey(event)) 
   }
@@ -557,6 +557,8 @@ class App extends Component {
             <img src={logo} className="App-logo" alt="logo" onClick={() => this.showHideControls() } />
             <h2>Audio Sync</h2>
           </div>
+
+          <Background />
           
           {this.state.status}
           {this.getSyncButton()}
@@ -564,7 +566,7 @@ class App extends Component {
           {this.getSettingsButton()}
 
           <div className="App-content">
-            <div className={this.state.controlsClass}>
+            <div className={this.state.controlsClass + ' controls'}>
               <RaisedButton onClick={() => this.play()}>Play</RaisedButton>
               <RaisedButton onClick={() => this.stop()}>Stop</RaisedButton>
               <RaisedButton onClick={() => this.reload()}>Reload</RaisedButton>
