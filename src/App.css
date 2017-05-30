@@ -87,3 +87,7 @@
   vertical-align: top;
   display: inline-block;
 }
+
+.animate {
+  transition: all 1s;
+}

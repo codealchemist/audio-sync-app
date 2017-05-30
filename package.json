@@ -26,7 +26,7 @@
     "react-tap-event-plugin": "^2.0.1",
     "time-diff-client": "^2.0.1",
     "time-diff-server": "^2.0.0",
-    "websocket-broadcast": "^1.1.4",
+    "websocket-broadcast": "^1.2.0",
     "youtube-audio-server": "^2.0.0"
   },
   "devDependencies": {

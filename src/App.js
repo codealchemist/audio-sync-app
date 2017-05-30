@@ -45,7 +45,8 @@ class App extends Component {
       preloadTime: 5000,
       timeDiff: this.store.get('timeDiff') || '',
       offset: this.store.get('offset') || 0,
-      songs: this.store.get('songs') || songs
+      songs: this.store.get('songs') || songs,
+      backgroundStyle: {opacity: 0}
     }
     this.selectedSong = this.state.songs[0]
     this.selectedSongIndex = null
@@ -253,6 +254,7 @@ class App extends Component {
       })
       .onStop(() => {
         this.sound.stop()
+        this.hideBackground()
         this.setStatus('stop', this.getRandomQuote())
       })
       .onPause(() => {
@@ -306,6 +308,7 @@ class App extends Component {
           this.forceFillPlaybackBuffer(this.state.preloadTime, () => {
             console.log('PLAY!')
             this.sound.play()
+            this.reloadBackground()
             this.setStatus('playing', this.getSongStatus(this.selectedSong))
 
             const isPlaying = this.sound.playing()
@@ -328,6 +331,7 @@ class App extends Component {
           this.sound.seek(data.time)
           this.setVolume(data.vol)
           this.sound.play()
+          this.reloadBackground()
           this.setStatus('playing', this.getSongStatus(this.selectedSong))
 
           const isPlaying = this.sound.playing()
@@ -355,6 +359,7 @@ class App extends Component {
       this.setStatus('preloading', this.getSongStatus(this.selectedSong))
       this.forceFillPlaybackBuffer(this.state.preloadTime, () => {
         this.sound.play()
+        this.reloadBackground()
         this.setStatus('playing', this.getSongStatus(this.selectedSong))
         console.log('PLAY!')
 
@@ -382,6 +387,7 @@ class App extends Component {
     control.stop()
     this.sound.stop()
     this.setStatus('stop', this.getRandomQuote())
+    this.hideBackground()
   }
 
   pause () {
@@ -596,6 +602,31 @@ class App extends Component {
     )
   }
 
+  showBackground () {
+    this.setState({backgroundStyle: {display: 'block'}})
+  }
+
+  hideBackground () {
+    this.setState({backgroundStyle: {display: 'none'}})
+  }
+
+  reloadBackground () {
+    this.setState({backgroundStyle: {display: 'none'}})
+    setTimeout(() => {
+      this.setState({backgroundStyle: {display: 'block', opacity: 1}})
+    })
+  }
+
+  getBackground (show = true) {
+    if (!show) {
+      return (<div></div>)
+    }
+
+    return (
+      <Background />
+    )
+  }
+
   render() {
     return (
       <MuiThemeProvider>
@@ -605,7 +636,9 @@ class App extends Component {
             <h2>Audio Sync</h2>
           </div>
 
-          <Background />
+          <div style={this.state.backgroundStyle} className="animate">
+            <Background />
+          </div>
           
           {this.state.status}
           {this.getSyncButton()}
