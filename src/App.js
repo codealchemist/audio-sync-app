@@ -46,7 +46,8 @@ class App extends Component {
       timeDiff: this.store.get('timeDiff') || '',
       offset: this.store.get('offset') || 0,
       songs: this.store.get('songs') || songs,
-      backgroundStyle: {opacity: 0}
+      backgroundStyle: {opacity: 0},
+      backgroundSrc: './gandalf.gif'
     }
     this.selectedSong = this.state.songs[0]
     this.selectedSongIndex = null
@@ -611,9 +612,17 @@ class App extends Component {
   }
 
   reloadBackground () {
-    this.setState({backgroundStyle: {display: 'none'}})
+    const src = this.state.backgroundSrc
+    this.setState({
+      backgroundStyle: {display: 'none'},
+      backgroundSrc: ''
+    })
+    
     setTimeout(() => {
-      this.setState({backgroundStyle: {display: 'block', opacity: 1}})
+      this.setState({
+        backgroundStyle: {display: 'block', opacity: 1},
+        backgroundSrc: src
+      })
     })
   }
 
@@ -637,7 +646,7 @@ class App extends Component {
           </div>
 
           <div style={this.state.backgroundStyle} className="animate">
-            <Background />
+            <Background src={this.state.backgroundSrc} />
           </div>
           
           {this.state.status}
