@@ -47,7 +47,8 @@ class App extends Component {
       offset: this.store.get('offset') || 0,
       songs: this.store.get('songs') || songs,
       backgroundStyle: {opacity: 0},
-      backgroundSrc: './gandalf.gif'
+      backgroundSrc: './gandalf.gif',
+      isBackgroundEnabled: false
     }
     this.selectedSong = this.state.songs[0]
     this.selectedSongIndex = null
@@ -276,6 +277,10 @@ class App extends Component {
         console.log('RESET SYNC...', data)
         this.doResetSync(data)
       })
+      .onLiveSync((data) => {
+        console.log('LIVE SYNC...', data)
+        this.doLiveSync(data)
+      })
       .onJoin((data) => {
         this.setState({joinedClients: this.state.joinedClients + 1})
 
@@ -307,10 +312,7 @@ class App extends Component {
         setTimeout(() => {
           this.setStatus('preloading', this.getSongStatus(this.selectedSong))
           this.forceFillPlaybackBuffer(this.state.preloadTime, () => {
-            console.log('PLAY!')
-            this.sound.play()
-            this.reloadBackground()
-            this.setStatus('playing', this.getSongStatus(this.selectedSong))
+            this.doPlay()
 
             const isPlaying = this.sound.playing()
             console.log('Started playing?', isPlaying)
@@ -331,12 +333,7 @@ class App extends Component {
           console.log('PLAY!')
           this.sound.seek(data.time)
           this.setVolume(data.vol)
-          this.sound.play()
-          this.reloadBackground()
-          this.setStatus('playing', this.getSongStatus(this.selectedSong))
-
-          const isPlaying = this.sound.playing()
-          console.log('Started playing?', isPlaying)
+          this.doPlay()
         }, parseInt(delay, 10))
 
         this.setStatus('preloading', this.getSongStatus(this.selectedSong))
@@ -347,10 +344,14 @@ class App extends Component {
         const joinedClients = this.state.joinedClients - 1
         this.setState({joinedClients})
       })
+      .onToggleBackground((data) => {
+        console.log('TOGGLE BACKGROUND', data)
+        this.doToggleBackground(data)
+      })
   }
 
   play () {
-    const startAt = (new Date()).getTime() + this.playDelay
+    const startAt = this.getServerTime() + this.playDelay
     control.play({startAt})
     this.isMaster = true
 
@@ -359,15 +360,17 @@ class App extends Component {
     setTimeout(() => {
       this.setStatus('preloading', this.getSongStatus(this.selectedSong))
       this.forceFillPlaybackBuffer(this.state.preloadTime, () => {
-        this.sound.play()
-        this.reloadBackground()
-        this.setStatus('playing', this.getSongStatus(this.selectedSong))
-        console.log('PLAY!')
-
-        const isPlaying = this.sound.playing()
-        console.log('Started playing?', isPlaying)
+        this.doPlay()
       })
     }, parseInt(delay, 10))
+  }
+
+  doPlay () {
+    this.sound.play()
+    this.showBackground()
+    this.reloadBackground()
+    this.setStatus('playing', this.getSongStatus(this.selectedSong))
+    console.log('PLAY!')
   }
 
   forceFillPlaybackBuffer (preloadTime, callback) {
@@ -432,6 +435,25 @@ class App extends Component {
     this.store.set('timeDiff', '')
     this.store.set('offset', 0)
     this.doReload()
+  }
+
+  liveSync () {
+    const serverTime = this.getServerTime()
+    const playTime = this.sound.seek()
+    console.log('Live Sync:', {serverTime, playTime})
+    control.liveSync({serverTime, playTime})
+  }
+
+  doLiveSync ({serverTime, playTime}) {
+    console.log('Live Sync')
+    const currentServerTime = this.getServerTime()
+    const currentPlayTime = this.sound.seek()
+    const elapsedTime = currentServerTime - serverTime
+    const pastPlayTime = currentPlayTime - elapsedTime
+    const playTimeDiff = serverTime - pastPlayTime
+    console.log(`ELAPSED TIME: ${elapsedTime} / PLAY TIME DIFF: ${playTimeDiff}`)
+
+    this.sound.seek(currentPlayTime + playTimeDiff)
   }
 
   selectSong (song, index) {
@@ -617,7 +639,7 @@ class App extends Component {
       backgroundStyle: {display: 'none'},
       backgroundSrc: ''
     })
-    
+
     setTimeout(() => {
       this.setState({
         backgroundStyle: {display: 'block', opacity: 1},
@@ -634,6 +656,41 @@ class App extends Component {
     return (
       <Background />
     )
+  }
+
+  getServerTime () {
+    return this.getTime() + this.state.timeDiff + this.state.offset
+  }
+
+  getTime () {
+    return (new Date()).getTime()
+  }
+
+  atServerTime(time) {
+    return (this.getServerTime() >= time) 
+  }
+
+  toggleBackground () {
+    const time = parseInt(this.getTime() + this.playDelay / 2, 10)
+    control.toggleBackground({time})
+    this.doToggleBackground({time})
+  }
+
+  doToggleBackground ({time}) {
+    if (this.state.isBackgroundEnabled) {
+      this.hideBackground()
+      this.setState({isBackgroundEnabled: false})
+      return
+    }
+
+    // this.setStatus('willPlay', this.getSongStatus(this.selectedSong))
+    const startAt = time + this.state.timeDiff + this.state.offset
+    const delay = startAt - this.getTime()
+    console.log(`SHOW BACKGROUND IN ${delay}ms`)
+    setTimeout(() => {
+      this.reloadBackground()
+      this.setState({isBackgroundEnabled: true})
+    }, parseInt(delay, 10))
   }
 
   render() {
@@ -660,6 +717,8 @@ class App extends Component {
               <RaisedButton onClick={() => this.stop()}>Stop</RaisedButton>
               <RaisedButton onClick={() => this.reload()}>Reload</RaisedButton>
               <RaisedButton onClick={() => this.resetSync()}>Re-Sync</RaisedButton>
+              <RaisedButton onClick={() => this.liveSync()}>Live Sync</RaisedButton>
+              <RaisedButton onClick={() => this.toggleBackground()}>Gandalf</RaisedButton>
 
               <Slider defaultValue={this.state.volume} onChange={(event, value) => this.volume(value)} />
 

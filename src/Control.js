@@ -44,6 +44,10 @@ class Control {
         if (typeof this.onResetSyncCallback !== 'function') return
         this.onResetSyncCallback(data)
       },
+      liveSync: (data) => {
+        if (typeof this.onLiveSyncCallback !== 'function') return
+        this.onLiveSyncCallback(data)
+      },
       join: (data) => {
         if (typeof this.onJoinCallback !== 'function') return
         this.onJoinCallback(data)
@@ -59,6 +63,10 @@ class Control {
       disconnect: (data) => {
         if (typeof this.onDisconnectCallback !== 'function') return
         this.onDisconnectCallback(data)
+      },
+      toggleBackground: (data) => {
+        if (typeof this.onToggleBackgroundCallback !== 'function') return
+        this.onToggleBackgroundCallback(data)
       }
     }
   }
@@ -154,6 +162,11 @@ class Control {
     return this
   }
 
+  onLiveSync (callback) {
+    this.onLiveSyncCallback = callback
+    return this
+  }
+
   onJoin (callback) {
     this.onJoinCallback = callback
     return this
@@ -171,6 +184,11 @@ class Control {
 
   onDisconnect (callback) {
     this.onDisconnectCallback = callback
+    return this
+  }
+
+  onToggleBackground (callback) {
+    this.onToggleBackgroundCallback = callback
     return this
   }
 
@@ -224,8 +242,18 @@ class Control {
     return this
   }
 
+  liveSync (data) {
+    this.send({type: 'liveSync', data})
+    return this
+  }
+
   disconnect (data) {
     this.send({type: 'disconnect', data})
+    return this
+  }
+
+  toggleBackground (data) {
+    this.send({type: 'toggleBackground', data})
     return this
   }
 }
